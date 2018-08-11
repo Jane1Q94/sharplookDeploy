@@ -2,6 +2,8 @@ import gzip
 import tarfile
 import zipfile
 import os
+import sys
+import progressbar
 
 target = "packages"
 
@@ -85,12 +87,14 @@ def un_zip(filename):
 def un_pack(dir):
     """unpack all file"""
 
-    num = len(os.listdir())
+    num = len(os.listdir(dir))
+
+    count = 1
 
     for name in os.listdir(dir):
 
+        progressbar.bar(count, num)
         file = os.path.join(dir, name)
-
         split = os.path.splitext
 
         name_end = split(file)
@@ -105,5 +109,7 @@ def un_pack(dir):
 
         elif name_end[-1] == '.zip':
             un_zip(file)
+
+        count += 1
 
 
