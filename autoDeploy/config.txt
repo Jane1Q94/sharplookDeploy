@@ -1,0 +1,755 @@
+### 更改系统参数
+### 关闭或者临时关闭防火墙和SELINUX
+### 修改NGINX的配置
+
+>>>JDK
+export JAVA_HOME=$JAVA_HOME/java/jdk1.8.0_121
+export JRE_HOME=$JAVA_HOME/java/jdk1.8.0_121/jre
+export CLASSPATH=.:$CLASSPATH:$JAVA_HOME/java/jdk1.8.0_121/jre/lib 
+export PATH=$JAVA_HOME/java/jdk1.8.0_121/bin:$PATH
+
+>>>zookeeper
+tickTime=2000
+initLimit=10
+syncLimit=5
+dataDir=$HOME/data/zookeeper
+dataLogDir=$HOME/data/zookeeper/log 
+clientPort=2181
+server.1=$IP:2888:3888
+
+>>>kafka
+broker.id=1
+delete.topic.enable=true
+listeners=PLAINTEXT://$IP:9092
+num.network.threads=3
+num.io.threads=8
+socket.send.buffer.bytes=102400
+socket.receive.buffer.bytes=102400
+socket.request.max.bytes=104857600
+log.dirs=$HOME/data/kafka
+num.partitions=3
+num.recovery.threads.per.data.dir=1
+log.retention.hours=24
+log.retention.bytes=1073741824
+log.segment.bytes=1073741824
+log.retention.check.interval.ms=300000
+zookeeper.connect=$IP:2181
+zookeeper.connection.timeout.ms=6000
+
+
+                                                  
+>>>es
+script.inline: true
+cluster.name: elasticsearch-dev5.4
+node.name: warm-$IP
+node.master: true
+node.data: true
+path.data: data
+path.logs: $HOME/data/es
+network.host: $IP 
+bootstrap.memory_lock: true
+discovery.zen.minimum_master_nodes: 1
+discovery.zen.ping.unicast.hosts: ["$IP:9300"]
+http.cors.enabled : true
+http.cors.allow-origin : "*"
+http.cors.allow-methods : OPTIONS, HEAD, GET, POST, PUT, DELETE
+http.cors.allow-headers : X-Requested-With,X-Auth-Token,Content-Type, Content-Length, kbn-version 
+indices.fielddata.cache.size: 20%
+indices.breaker.fielddata.limit: 30%
+indices.breaker.request.limit: 40%
+indices.breaker.total.limit: 50%
+http.port: 9200
+transport.tcp.port: 9300
+node.attr.box_type: warm
+
+
+
+
+>>>ITOA
+agent {
+  hosts = ["$IP"]
+  port = "7070"
+  heartBeatTimeOut = 2
+  metadata = ["@collectiontime=Date", "@hostname=String", "@rownumber=Long", "@path=String", "@subpath=String", "@sourceip=String", "@message=String"]
+}
+server {
+  ip = "0.0.0.0"
+  port = 6688
+  urlSecret = "EBA7AA43D165FC6BF49C0549A8A55D35"
+  sessionTimeout = 60
+  groupId = "itoaServiceConsumerDev"
+  isRedis = false
+}
+kafka {
+  kafka.bootstrap.servers = "$IP:9092"
+  zookeeper.connect = "$IP:2181"
+  zookeeper.flag = 1
+  partitions = 2
+  replications = 1
+  polltimeout = 5000
+  maxMessageBytes = 10000120
+}
+topic {
+  itoa_to_gw_req = "ITOA_TO_GW_REQ"
+  itoa_to_gw_rsp = "ITOA_TO_GW_RSP"
+  gw_to_itoa_req = "GW_TO_ITOA_REQ"
+  gw_to_itoa_rsp = "GW_TO_ITOA_RSP"
+  itoa_to_sm_req = "ITOA_TO_SM_REQ"
+  itoa_to_sm_rsp = "ITOA_TO_SM_RSP"
+  sm_to_itoa_req = "SM_TO_ITOA_REQ"
+  sm_to_itoa_rsp = "SM_TO_ITOA_RSP"
+  itoa_to_hub_req = "ITOA_TO_HUB_REQ"
+  itoa_to_hub_rsp = "ITOA_TO_HUB_RSP"
+  hub_to_itoa_req = "HUB_TO_ITOA_REQ"
+  hub_to_itoa_rsp = "HUB_TO_ITOA_RSP"
+  itoa_to_alarm_req = "ITOA_TO_ALARM_REQ"
+  itoa_to_alarm_rsp = "ITOA_TO_ALARM_RSP"
+  alarm_to_itoa_req = "ALARM_TO_ITOA_REQ"
+  alarm_to_itoa_rsp = "ALARM_TO_ITOA_RSP"
+  itoa_to_dm_req = "ITOA_TO_DM_REQ"
+  itoa_to_dm_rsp = "ITOA_TO_DM_RSP"
+  dm_to_itoa_req = "DM_TO_ITOA_REQ"
+  dm_to_itoa_rsp = "DM_TO_ITOA_RSP"
+  itoa_to_pm_req = "ITOA_TO_PM_REQ"
+  itoa_to_pm_rsp = "ITOA_TO_PM_RSP"
+  pm_to_itoa_req = "PM_TO_ITOA_REQ"
+  pm_to_itoa_rsp = "PM_TO_ITOA_RSP"
+  external_alarm_compress_req = "EXTERNAL_ALARM_COMPRESS_REQ"
+  alarmEventTopic = "event_out"
+}
+dbConnection {
+  drives = "jdbc:mysql://$IP:3306/DB01?characterEncoding=utf8&useSSL=false"
+  user = "root"
+  password = "MySQL@123"
+  maxConnections = 10
+}
+redis {
+  clusterList = "$IP:6379"
+  prefix = "DevTest"
+}
+snowflake {
+  worker_id = 0
+}
+akkaCluster {
+  clusterNodes = "akka.tcp://itoa@127.0.0.1:2551"
+  hostname = "127.0.0.1"
+  port = 2551
+}
+spl {
+  url = "http://$IP:9910"
+  isCheckPermission = false
+  requestTimeout = 10
+  dataSetHealthLevelIndex = "kafka_offset/producer"
+}
+sso {
+  classname = "s.com.eoi.service.user.SSODefaultServiceImp"
+  authserver = "http://$IP:18088/sso/auth"
+  isRawLogin = true
+}
+
+
+
+
+
+
+
+>>>nginx
+user  root;
+worker_processes  auto;
+error_log  /var/log/nginx/error.log warn;
+pid        /var/run/nginx.pid;
+events {
+    worker_connections  1024;
+}
+http### 更改系统参数
+tc/nginx/mime.types;
+    default_type  application/octet-stream;
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for" "$request_time"';
+    access_log  /var/log/nginx/access.log  main;
+    sendfile        off;
+    tcp_nopush     on;
+    tcp_nodelay    on;
+    keepalive_timeout  65;
+    gzip  on;
+    gzip_vary     on;
+    include /etc/nginx/conf.d/*.conf;
+}
+
+
+
+
+
+
+>>>nginx
+
+upstream spl_server {
+  server $IP:9910;  #spl server地址，与spl配置中的端口检查是否一致
+}
+upstream itoa_server {
+  server $IP:6688;  #itoa server地址，与itoa配置中的端口检查是否一致，否则不能登录
+}
+upstream topology_server {
+  server $IP:8808;  #neo4j server地址
+}
+upstream anaconda {
+server $IP:8000;   #machine learning服务地址
+}
+server {
+  listen 80;
+  server_name $IP;   #定义使用ip地址访问
+  charset utf-8;   #定义字符编码
+  root $HOME/sharplook/dist;
+  large_client_header_buffers 4 16k;  #设定请求缓存
+  gzip_types text/plain application/javascript text/css image/svg+xml;
+  gzip_proxied no-cache no-store private expired auth;
+  gzip_static on;
+  gunzip on;
+  location ~* \.(otf|eot|woff|ttf|woff2)$ {
+    types     {font/opentype otf;}
+    types     {application/vnd.ms-fontobject eot;}
+    types     {font/truetype ttf;}
+    types     {application/font-woff woff;}
+    types     {font/woff2 woff2;}
+  }
+  location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm|htc|ttf|woff|woff2|css|js|map)$ {
+access_log off;
+    expires 1M;
+    add_header Cache-Control "public, immutable";
+    break;
+  }
+  location /NginxStatus {
+    stub_status on;
+    break;
+  }
+  location ^~ /api/itoa {
+    rewrite '^/api(.*)' $1;
+    expires off;
+    proxy_pass http://itoa_server;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host  $host:$server_port;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    break;
+  }
+  location ^~ /api/spl {
+    rewrite '^/api/spl(.*)' $1;
+    expires off;
+    proxy_pass http://spl_server;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host  $host:$server_port;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    break;
+  }
+  location ^~ /api/topology {
+    rewrite "^/api(.*)" $1;
+    expires off;
+    proxy_pass http://topology_server;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host  $host:$server_port;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    break;
+  }
+    location ^~ /api/bigdata {
+    rewrite "^/api/bigdata(.*)" $1;
+    expires off;
+    proxy_pass http://anaconda;
+    proxy_set_header Host              $host;
+    proxy_set_header X-Real-IP         $remote_addr;
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Host  $host:$server_port;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    break;
+  }
+  location /api {
+    return 404;
+  }
+  location / {
+    try_files $uri $uri/ /index.html =404;
+    expires off;
+    add_header Cache-Control "no-cache, no-store, must-revalidate";
+    add_header Strict-Transport-Security "max-age=86400" always;
+  }
+}
+
+
+
+
+
+>>>Cell
+[server]
+id = "1"
+tcp_bind = "$IP:7788"
+dashboard_bind = "$IP:7680"
+[log]
+level = "DEBUG3"
+max_count = 5
+max_size = "10m"
+[kafka]
+brokers = ["$IP:9092"]
+version = "0.10.2.0"
+pipeline_topic_request = "ITOA_TO_GW_REQ"
+pipeline_topic_response = "ITOA_TO_GW_RSP"
+roundtrip_topic_request = "GW_TO_ITOA_REQ"
+roundtrip_topic_response = "GW_TO_ITOA_RSP"
+report_hw_topic = "CELL_REPORT"
+[agent]
+itoa_zone_udp_port_offset = 1
+unionpay_zone_udp_port_offset = 6 
+config_filter = false
+[agent.os_tag]
+Windows2003 = ["Windows 2003", "Windows XP", "Windows 2000"]
+Windows2008 = ["Windows 2008", "Windows 2012", "Windows 8", "Windows 7", "Windows Vista"]
+Linux = ["Linux"]
+AIX = ["AIX"]
+
+
+
+
+
+
+>>>router
+[core]
+buffer = 1000
+procs = 4
+[log]
+max_count = 5
+max_size = "10m"
+level = "DEBUG3"
+[cache]
+enabled = true
+interval = "1s"
+[server]
+id = "0"
+ip = "$IP"
+port = 7070
+ssl = false
+protocol = "lumberjack.v2"
+chan_size = 128
+[kafka]
+brokers = ["$IP:9092"]
+version = "0.10.0.0"
+topic_keys = ["@topic"]
+default_topic = "eoi_router_default"
+async_producer = true
+max_message_bytes = "1m"
+channel_buffer_size = 1024
+ack = 1
+[kafka.statistic]
+producer_interval = "10s"
+topic = "eoi_router_statistic"
+consumer_enabled = true
+[export]
+[export.Aggregation]
+interval = "1s"
+[export.http]
+host = "0.0.0.0"
+port = 7080
+
+
+
+
+
+
+
+>>>Mave
+[core]
+log_level = DEBUG1
+[cell]
+host = $IP
+port = 7788
+main = Y
+[general]
+cmd_channels = cell
+
+
+
+
+
+
+>>>curator
+topic {
+  ############################# ITOA 请求 topic #############################
+  curator_req = "ITOA_TO_DM_REQ"
+  ############################# ITOA 响应 topic #############################
+  curator_resp = "ITOA_TO_DM_RSP"
+}
+commonConsumer {
+  bootstrap.servers = "$IP:9092"
+}
+commonProducer {
+  bootstrap.servers = "$IP:9092"
+}
+zookeeper {
+  servers = "$IP:2181"
+}
+kafka {
+  bootstrap.servers = "$IP:9092"
+}
+elasticsearch {
+  servers = "$IP:9200"
+}
+akka {
+  actor.provider = "akka.cluster.ClusterActorRefProvider"
+  cluster.seed-nodes = ["akka.tcp://CuratorService@$IP:2551"]
+  remote.netty.tcp.hostname = "$IP"
+  remote.netty.tcp.port = 2551
+}
+
+
+
+
+
+
+
+>>>Stream
+KStreamManage.server.ip = "$IP"
+KStreamManage.server.port = 9528
+StreamCommonConfig.bootstrap.servers = "$IP:9092"
+kafkaAdminManager.bootstrap-server = "$IP:9092"
+commonConsumer.bootstrap.servers = "$IP:9092"
+commonProducer.bootstrap.servers = "$IP:9092"
+StreamConf.reqTopic = "ITOA_TO_PM_REQ"
+StreamConf.rspTopic = "ITOA_TO_PM_RSP"
+StreamMetaConf.application.id = "META-FETCH"
+StreamMetaConf.group.id = "META-FETCH"
+akka.cluster.seed-nodes = [ "akka.tcp://kstream@$IP:9528"]
+StreamCommonConfig.host_map=$HOME/packages/stream-1.9.5/host_map.conf
+
+
+
+
+>>>Persistent
+SharplookSink.Source.bootstrap.servers = "$IP:9092"
+KStreamManage.server.ip = "$IP"
+KStreamManage.server.port = 9527
+StreamCommonConfig.bootstrap.servers = "$IP:9092"
+kafkaAdminManager.bootstrap-server = "$IP:9092"
+commonConsumer.bootstrap.servers = "$IP:9092"
+commonProducer.bootstrap.servers = "$IP:9092"
+StreamConf.reqTopic = "ITOA_TO_SM_REQ"
+StreamConf.rspTopic = "ITOA_TO_SM_RSP"
+StreamMetaConf.application.id = "META-FETCH2"
+StreamMetaConf.group.id = "META-FETCH2"
+akka.cluster.seed-nodes = [ "akka.tcp://kstore@$IP:9527"]
+es.http.host = "$IP:9200"
+hdfs {
+  HADOOP_USER_NAME = "hdfs"
+  fs.defaultFS = "hdfs://eoinameservice"
+  conf {
+    dfs.nameservices = "eoinameservice"
+    dfs.ha.namenodes.eoinameservice = "eoi02,eoi03"
+    dfs.namenode.rpc-address.eoinameservice.eoi02 = "eoi02:8020"
+    dfs.namenode.rpc-address.eoinameservice.eoi03 = "eoi03:8020"
+    dfs.client.failover.proxy.provider.eoinameservice = "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider"
+  }
+  message {
+    pushAll = 1
+    pushFields = ""
+  }
+}
+
+
+
+
+
+
+
+
+
+>>>UQ
+http.server {
+  name = "EOI-Universal-Query"
+  ip = "$IP"
+  port = 9910
+}
+es.connection {
+  client = "http"
+  transport.hosts = "$IP:9300"
+  transport.cluster_name = "sharplook-es-dev"
+  http.hosts = "$IP:9200"
+  http.conn_timeout = 20
+  http.wait_timeout = 20
+  http.read_timeout = 20
+}
+tsd.connection {
+  tsd_http = "$IP:4242"
+}
+query {
+  index_filter = false
+  verify_query_time = false
+  buckets_limit = 1000000
+  output_limit = 100000
+  default_top_agg_size=1000
+  not_top_buckets_limit=100 
+  stats_field_limit=5
+  pipeline_stats_limit=5  
+  highlight_pre_tag = "<mark>"
+  highlight_post_tag = "</mark>"
+  time_field = "@timestamp"
+  stats_swatch_count = 500
+  stats_count_ignore = ["message","@timestamp","log","path"]
+}
+join.query {
+  switch_on = false
+  job_service = "$IP:9918"
+}
+
+
+
+
+
+
+
+
+>>>Hub
+[log]
+max_count = 5
+max_size = "10m"
+level = "DEBUG3"
+[kafka]
+brokers = ["$IP:9092"]
+version = "0.10.2.0"
+request_topic = "ITOA_TO_HUB_REQ"
+response_topic = "ITOA_TO_HUB_RSP"
+max_message_bytes = "1m"
+channel_buffer_size = 1024
+[connector]
+nodes = ["$IP:7583"]
+[connector.truesight]
+port = 7581
+[connector.jdbc]
+path = "bin/eoi-utils-jdbc/bin/eoic-jdbc.sh"
+[server]
+[server.http]
+host = "$IP"
+port = 7777
+webdic = "website"
+
+
+
+
+>>>connector
+bootstrap.servers=$IP:9092
+group.id=eoi-connect-cluster
+key.converter=org.apache.kafka.connect.json.JsonConverter
+value.converter=org.apache.kafka.connect.json.JsonConverter
+key.converter.schemas.enable=false
+value.converter.schemas.enable=false
+internal.key.converter=org.apache.kafka.connect.json.JsonConverter
+internal.value.converter=org.apache.kafka.connect.json.JsonConverter
+internal.key.converter.schemas.enable=false
+internal.value.converter.schemas.enable=false
+offset.storage.topic=eoi-connect-offsets
+config.storage.topic=eoi-connect-configs
+status.storage.topic=eoi-connect-status
+offset.flush.interval.ms=10000
+rest.host.name=$IP
+rest.port=7583
+
+
+
+
+>>>RealtimeAlarm
+kafka{
+  bootstrap.servers = "$IP:9092"
+}
+kafkaMgmt{
+  bootstrap.servers = "$IP:9092"
+}
+SharplookEventManage {
+  Source {
+    bootstrap.servers = "$IP:9092"
+    group.id = "eventmanagestream-010"
+    auto.offset.reset = "latest"
+    session.timeout.ms = "30000"
+    heartbeat.interval.ms = "10000"
+    max.poll.interval.ms = "10000"
+    max.poll.records = 50
+    reconnect.backoff.ms = 2000
+    topic = "live"
+  }
+  Sink {
+    event {
+      kafka {
+        topic = "event_out"
+        compact_topic = "event_history2"
+        bootstrap.servers = "$IP:9092"
+      }
+    }
+  }
+  Supervisor {
+    minBackOff = 30 
+    maxBackOff = 120 
+    reset = 60
+  }
+  Rule{
+    bootstrap.servers = "$IP:9092"
+    auto.offset.reset = "earliest"
+    session.timeout.ms = "30000"
+    heartbeat.interval.ms = "10000"
+    max.poll.interval.ms = "10000"
+    max.poll.records = 50
+    reconnect.backoff.ms = 2000
+    topic = "ITOA_TO_ALARM_REQ"
+  }
+  Event{
+    bootstrap.servers = "$IP:9092"
+    auto.offset.reset = "earliest"
+    session.timeout.ms = "30000"
+    heartbeat.interval.ms = "10000"
+    max.poll.interval.ms = "10000"
+    max.poll.records = 50
+    reconnect.backoff.ms = 2000
+    topic = "event_history"
+  }
+}
+akka.kafka.consumer {
+  # Tuning property of scheduled polls.
+  poll-interval = 50ms
+  # Tuning property of the `KafkaConsumer.poll` parameter.
+  # Note that non-zero value means that blocking of the thread that
+  # is executing the stage will be blocked.
+  poll-timeout = 50ms
+  # The stage will be await outstanding offset commit requests before
+  # shutting down, but if that takes longer than this timeout it will
+  # stop forcefully.
+  stop-timeout = 30s
+  # How long to wait for `KafkaConsumer.close`
+  close-timeout = 20s
+  # If offset commit requests are not completed within this timeout
+  # the returned Future is completed `TimeoutException`.
+  commit-timeout = 15s
+  # If the KafkaConsumer can't connect to the broker the poll will be
+  # aborted after this timeout. The KafkaConsumerActor will throw
+  # org.apache.kafka.common.errors.WakeupException which will be ignored
+  # until max-wakeups limit gets exceeded.
+  wakeup-timeout = 5s
+  # After exceeding maxinum wakeups the consumer will stop and the stage will fail.
+  max-wakeups = 10
+  # Fully qualified config path which holds the dispatcher configuration
+  # to be used by the KafkaConsumerActor. Some blocking may occur.
+  use-dispatcher = "akka.kafka.default-dispatcher"
+  # Properties defined by org.apache.kafka.clients.consumer.ConsumerConfig
+  # can be defined in this configuration section.
+  kafka-clients {
+    # Disable auto-commit by default
+    enable.auto.commit = true
+  }
+}
+SharplookEventManage.Cluster.memberId = 0
+kafka.bootstrap.servers = "$IP:9092"
+
+
+
+
+
+
+
+>>>ShceldAlarm
+akka.http {
+  server {
+    idle-timeout = 60 s
+    request-timeout = 20 s
+    bind-timeout = 5 s
+    max-connections = 1024
+  }
+}
+topic {
+  #告警系统接收数据topic
+  alarm_req = "ITOA_TO_ALARM_REQ"
+  #告警系统消费topic
+  alarm_rsp = "ALARM_TO_COMPRESS_RSP"
+}
+spl {
+  #spl 查询服务器地址
+  spl_base_url = "$IP:8080"
+  #默认查询数据起始时间
+  start = "now-1y"
+  #查询数量
+  size = "10000"
+  #spl 链接超时时间
+  connect_timeOut = 20000
+  #spl 读取超时时间
+  read_timeOut = 10000
+  #查询结果数据格式
+  format=std
+}
+commonConsumer {
+  bootstrap.servers = "$IP:9092"
+  key.deserializer = "org.apache.kafka.common.serialization.StringDeserializer"
+  value.deserializer = "org.apache.kafka.common.serialization.StringDeserializer"
+  group.id = "AlarmServiceConsumer-003"
+  auto.offset.reset = "latest"
+  enable.auto.commit = "true"
+  auto.commit.interval.ms = "1000"
+  session.timeout.ms = "30000"
+  heartbeat.interval.ms = "10000"
+  max.poll.interval.ms = "10000"
+  max.poll.records = 50
+}
+commonProducer {
+  bootstrap.servers = "$IP:9092"
+  key.serializer = "org.apache.kafka.common.serialization.StringSerializer"
+  value.serializer = "org.apache.kafka.common.serialization.StringSerializer"
+  compression.type = "none"
+  retries = "0"
+  acks = "1"
+}
+eoiMetric {
+  reporter = "tsdb"
+  reportInterval = 10000
+  baseTags = ["host", "pid", "ip"]
+}
+
+
+
+
+
+
+>>>alarmCompress
+server {
+  ip = "0.0.0.0"
+  port = 9933
+}
+topic {
+  #内部告警压缩topic
+  event_in = "ALARM_TO_COMPRESS_RSP"
+  #外部告警压缩topic
+  external_event_in = "EXTERNAL_ALARM_COMPRESS_REQ"
+  #告警发送topic
+  event_out = "event_out"
+  #告警规则持久化topic
+  event_state = "eoi_alarm_compress_state"
+}
+compressRule{
+  #压缩规则超时时间 默认十天
+  time_out = 864000000
+}
+commonConsumer {
+  bootstrap.servers = "$IP:9092"
+  key.deserializer = "org.apache.kafka.common.serialization.StringDeserializer"
+  value.deserializer = "org.apache.kafka.common.serialization.StringDeserializer"
+  group.id = "eoi_alarm_compress_group"
+  auto.offset.reset = "latest"
+  enable.auto.commit = "true"
+  auto.commit.interval.ms = "1000"
+  session.timeout.ms = "30000"
+  heartbeat.interval.ms = "10000"
+  max.poll.interval.ms = "10000"
+  max.poll.records = 50
+}
+commonProducer {
+  bootstrap.servers = "$IP:9092"
+  key.serializer = "org.apache.kafka.common.serialization.StringSerializer"
+  value.serializer = "org.apache.kafka.common.serialization.StringSerializer"
+  compression.type = "none"
+  retries = "0"
+  acks = "1"
+}
