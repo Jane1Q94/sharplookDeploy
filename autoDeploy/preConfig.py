@@ -106,6 +106,7 @@ def preCommand():
     bash_command("service mysqld start")
     bash_command("grep 'temporary password' /var/log/mysqld.log")
     passwd =  readMysqlPasswd()
+    print passwd
     bash_command("mysql -uroot -p %s" % passwd)
     print '----------------------------------------------------------------\n\n'
 
@@ -142,6 +143,9 @@ def preAlterConfigFile():
         content = "\n".join(f.readlines())
         openFIle("/etc/profile", content)
 
+    print "write config file done"
+
+
 def backupConfig():
     """
 
@@ -154,6 +158,7 @@ def backupConfig():
     bash_command("cp /etc/security/limits.conf /etc/security/limits.conf.bak")
     bash_command("cp /etc/sysctl.conf /etc/sysctl.conf.bak")
     bash_command("cp /etc/profile /etc/profile.bak")
+    print "backup done"
 
 def recover():
     """
@@ -179,6 +184,6 @@ def readMysqlPasswd():
         content = " ".join(f.readlines())
         return re.findall(r'root@localhost: (\S+)', content)[0]
 
-
-
-readMysqlPasswd()
+backupConfig()
+preAlterConfigFile()
+preCommand()
