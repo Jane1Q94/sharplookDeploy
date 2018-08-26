@@ -124,6 +124,20 @@ def openFIle(path, content):
     with open(path, 'a') as f:
         f.write(content)
 
+def deleteFile(path, numLine):
+    """
+
+    delete lines of a config file
+    :param path:
+    :param numLine:
+    :return:
+    """
+    with open(path, 'w+') as f:
+        content = f.readlines()
+        content = content[:-numLine]
+        f.writelines(content)
+
+
 def preAlterConfigFile():
     openFIle("/etc/selinux/config", "SELINUX=disabled")
 
@@ -146,6 +160,24 @@ def preAlterConfigFile():
         openFIle("/etc/profile", content)
 
 
+def clearAlter():
+    """
+
+    clear the change of the config file for better test.
+    :return:
+    """
+
+    deleteFile("/etc/selinux/config", 1)
+
+    deleteFile("/etc/ntp.conf", 2)
+
+    deleteFile("/etc/hosts", 3)
+
+    deleteFile("/etc/security/limits.conf", 8)
+
+    deleteFile("/etc/sysctl.conf", 1)
+
+    deleteFile("/etc/profile", 4)
 
 
 
