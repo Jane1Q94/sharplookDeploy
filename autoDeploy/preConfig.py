@@ -19,7 +19,7 @@ def bash_command(command):
     """
 
     try:
-        return os.popen(command).read().strip()
+        print os.popen(command).read().strip()
 
     except:
         return None
@@ -30,6 +30,14 @@ def preCommand():
     preparation config before installing the software
     :return: None
     """
+
+    print "----------------eoi user--------------\n"
+    bash_command("useradd eoi")
+    bash_command("passwd eoi")
+    print "----------------------------------------\n\n"
+    time.sleep(4)
+
+
     print "------------uname -a----------------\n"
     bash_command("uname -a")
     print "------------------------------------\n\n"
@@ -37,13 +45,9 @@ def preCommand():
 
     print "------------setenforce0----------------\n"
     bash_command("setenforce 0")
-    print "---------------------------------------\n\n"
-    time.sleep(4)
 
     print "---------------systemctl stop firewalld----------\n"
     bash_command("systemctl stop firewalld")
-    print "----------------------------------------------\n\n"
-    time.sleep(4)
 
     print "---------------timedatectl----------------------\n"
     bash_command("timedatectl")
@@ -52,7 +56,10 @@ def preCommand():
 
     print "------------------settimezone--------------------\n"
     bash_command("timedatectl set-timezone 'Asia/Shanghai'")
-    print "--------------------------------------------------\n\n"
+
+    print "--------------------ntpdate----------------------\n"
+    bash_command("ntpdate 192.168.21.198")
+    print "----------------------------------------------------\n\n"
     time.sleep(4)
 
     print "----------------------sysctl -p---------------------\n"
@@ -87,6 +94,19 @@ def preCommand():
     print "------------------------------------------------------------------\n\n"
     time.sleep(4)
 
+    print '---------------------------安装mysql包--------------------------\n'
+    bash_command("tar xvf packages/04-mysql*")
+    bash_command("rpm -ivh mysql-community-common-5.7*")
+    bash_command("rpm -ivh mysql-community-libs-5.7*")
+    bash_command("rpm -ivh mysql-community-client-5.7*")
+    bash_command("rpm -ivh mysql-community-server-5.7*")
+    bash_command("service mysqld start")
+    bash_command("grep 'temporary password' /var/log/mysqld.log")
+    bash_command("mysql -uroot -p")
+    bash_command("source db.sql")
+    print '----------------------------------------------------------------\n\n'
+    time.sleep(4)
+
 
 
 
@@ -106,6 +126,10 @@ def openFIle(path, content):
 
 def preAlterConfigFile():
     openFIle("/etc/selinux/config", "SELINUX=disabled")
+
+    with open("ntpserver") as f:
+        content = "\n".join(f.readlines())
+        openFIle("/etc/ntp.conf", content)
 
     with open("hosts") as f:
         content = "\n".join(f.readlines())
