@@ -82,7 +82,9 @@ def preCommand():
     print "------------------------------------------------------------------\n\n"
     time.sleep(4)
 
+    print '--------------------------source /etc/profile--------------------\n'
     bash_command("source /etc/profile")
+    time.sleep(4)
 
     print "---------------------------check java----------------------------\n"
     bash_command("java -version")
@@ -103,9 +105,7 @@ def preCommand():
     bash_command("service mysqld start")
     bash_command("grep 'temporary password' /var/log/mysqld.log")
     bash_command("mysql -uroot -p")
-    bash_command("source db.sql")
     print '----------------------------------------------------------------\n\n'
-    time.sleep(4)
 
 
 
@@ -123,19 +123,6 @@ def openFIle(path, content):
 
     with open(path, 'a') as f:
         f.write(content)
-
-def deleteFile(path, numLine):
-    """
-
-    delete lines of a config file
-    :param path:
-    :param numLine:
-    :return:
-    """
-    with open(path, 'w+') as f:
-        content = f.readlines()
-        content = content[:-numLine]
-        f.writelines(content)
 
 
 def preAlterConfigFile():
@@ -160,24 +147,35 @@ def preAlterConfigFile():
         openFIle("/etc/profile", content)
 
 
-def clearAlter():
+
+def backupConfig():
     """
 
-    clear the change of the config file for better test.
+    backup config file
     :return:
     """
+    bash_command("cp /etc/selinux/config /etc/selinux/config.bak")
+    bash_command("cp /etc/ntp.conf /etc/ntp.conf.bak")
+    bash_command("cp /etc/hosts /etc/hosts.bak")
+    bash_command("cp /etc/security/limits.conf /etc/security/limits.conf.bak")
+    bash_command("cp /etc/sysctl.conf /etc/sysctl.conf.bak")
+    bash_command("cp /etc/profile /etc/profile.bak")
 
-    deleteFile("/etc/selinux/config", 1)
 
-    deleteFile("/etc/ntp.conf", 2)
 
-    deleteFile("/etc/hosts", 3)
+def recover():
+    """
 
-    deleteFile("/etc/security/limits.conf", 8)
+    recover config file from backup fiel
+    :return:
+    """
+    bash_command("cp /etc/selinux/config.bak /etc/selinux/config")
+    bash_command("cp /etc/ntp.conf.bak /etc/ntp.conf")
+    bash_command("cp /etc/hosts.bak /etc/hosts")
+    bash_command("cp /etc/security/limits.conf.bak /etc/security/limits.conf")
+    bash_command("cp /etc/sysctl.conf.bak /etc/sysctl.conf")
+    bash_command("cp /etc/profile.bak /etc/profile")
 
-    deleteFile("/etc/sysctl.conf", 1)
-
-    deleteFile("/etc/profile", 4)
 
 
 

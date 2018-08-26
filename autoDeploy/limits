@@ -2,3 +2,7 @@
 * hard nofile 65536
 * soft memlock unlimited
 * hard memlock unlimited
+eoi soft nofile 65536
+eoi hard nofile 65536
+eoi soft memlock unlimited
+eoi hard memlock unlimited
