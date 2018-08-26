@@ -7,6 +7,7 @@
 
 import os
 import time
+import re
 
 
 
@@ -104,13 +105,9 @@ def preCommand():
     bash_command("rpm -ivh mysql-community-server-5.7*")
     bash_command("service mysqld start")
     bash_command("grep 'temporary password' /var/log/mysqld.log")
-    bash_command("mysql -uroot -p")
+    pass =  readMysqlPasswd()
+    bash_command("mysql -uroot -p %s" % pass)
     print '----------------------------------------------------------------\n\n'
-
-
-
-
-
 
 def openFIle(path, content):
     """
@@ -123,7 +120,6 @@ def openFIle(path, content):
 
     with open(path, 'a') as f:
         f.write(content)
-
 
 def preAlterConfigFile():
     openFIle("/etc/selinux/config", "SELINUX=disabled")
@@ -146,8 +142,6 @@ def preAlterConfigFile():
         content = "\n".join(f.readlines())
         openFIle("/etc/profile", content)
 
-
-
 def backupConfig():
     """
 
@@ -160,8 +154,6 @@ def backupConfig():
     bash_command("cp /etc/security/limits.conf /etc/security/limits.conf.bak")
     bash_command("cp /etc/sysctl.conf /etc/sysctl.conf.bak")
     bash_command("cp /etc/profile /etc/profile.bak")
-
-
 
 def recover():
     """
@@ -176,8 +168,17 @@ def recover():
     bash_command("cp /etc/sysctl.conf.bak /etc/sysctl.conf")
     bash_command("cp /etc/profile.bak /etc/profile")
 
+def readMysqlPasswd():
+    """
+
+    get the origin passwd of mysql
+    :return:
+    """
+
+    with open("/var/log/mysql.d", 'r') as f:
+        content = " ".join(f.readlines())
+        return re.findall(r'root@localhost: (\S+)', content)[0]
 
 
 
-preAlterConfigFile()
-preCommand()
+readMysqlPasswd()
