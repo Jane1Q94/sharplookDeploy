@@ -105,8 +105,8 @@ def preCommand():
     bash_command("rpm -ivh mysql-community-server-5.7*")
     bash_command("service mysqld start")
     bash_command("grep 'temporary password' /var/log/mysqld.log")
-    pass =  readMysqlPasswd()
-    bash_command("mysql -uroot -p %s" % pass)
+    passwd =  readMysqlPasswd()
+    bash_command("mysql -uroot -p %s" % passwd)
     print '----------------------------------------------------------------\n\n'
 
 def openFIle(path, content):
@@ -175,7 +175,7 @@ def readMysqlPasswd():
     :return:
     """
 
-    with open("/var/log/mysql.d", 'r') as f:
+    with open("/var/log/mysqld.log", 'r') as f:
         content = " ".join(f.readlines())
         return re.findall(r'root@localhost: (\S+)', content)[0]
 
